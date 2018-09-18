@@ -1,5 +1,6 @@
 var APIKey, siteID, collectionID, itemID;
 
+
 $.ajax({
   url: "data.json",
   dataType: "json",
@@ -56,13 +57,36 @@ $.ajax({
 //
 function getData() {
   $.ajax({
-    url: `https://api.webflow.com/collections/${collectionID}/items/${itemID}?api_version=1.0.0&access_token=${APIKey}`,
+    url: `https://api.webflow.com/collections/${collectionID}/items/?api_version=1.0.0&access_token=${APIKey}`,
     type: 'GET',
     contentType: 'application/json;',
     crossDomain: true,
     dataType: 'json',
     success: function(DataFromJson) {
       console.log(DataFromJson);
+      getDatas();
+    },
+    error: function() {
+      console.log("Can't fetch ");
+    }
+  })
+}
+var email = {
+  'propertyaddress1': '11',
+  'propertyaddress2': 'elliot',
+};
+
+function getDatas() {
+  $.ajax({
+    url: `https://api.webflow.com/collections/${collectionID}/items/${itemID}/?api_version=1.0.0&access_token=${APIKey}?live=true`,
+    type: "PATCH",
+    data: email,
+    contentType: 'application/json',
+    crossDomain: true,
+    dataType: 'json',
+    success: function(data) {
+      console.log(DataFromJson);
+      getDatas();
     },
     error: function() {
       console.log("Can't fetch ");
