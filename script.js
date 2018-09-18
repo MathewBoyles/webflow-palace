@@ -1,3 +1,5 @@
+var APIKey, siteID, collectionID, itemID;
+
 $.ajax({
   url: "data.json",
   dataType: "json",
@@ -8,6 +10,9 @@ $.ajax({
   },
   success: function(DataFromJson) {
     APIKey = DataFromJson.apikey;
+    siteID = DataFromJson.siteid;
+    collectionID = DataFromJson.collectionid;
+    itemID = DataFromJson.itemX;
     getData();
   },
   error: function() {
@@ -15,19 +20,72 @@ $.ajax({
   }
 })
 
+// function getData() {
+//   $.ajax({
+//     url: `https://api.webflow.com/sites?api_version=1.0.0&access_token=${APIKey}`,
+//     type: 'GET',
+//     contentType: 'application/json;',
+//     crossDomain: true,
+//     dataType: 'json',
+//     success: function(DataFromJson) {
+//       console.log(DataFromJson);
+//     },
+//     error: function() {
+//       console.log("Can't fetch ");
+//     }
+//   })
+// }
+//
+// function getData() {
+//   $.ajax({
+//     url: `https://api.webflow.com/collections?api_version=1.0.0&access_token=${APIKey}`,
+//     type: 'GET',
+//     contentType: 'application/json;',
+//     crossDomain: true,
+//     dataType: 'json',
+//     success: function(DataFromJson) {
+//       console.log(DataFromJson);
+//     },
+//     error: function() {
+//       console.log("Can't fetch ");
+//     }
+//   })
+// }
+//
+//
+//
 function getData() {
   $.ajax({
-    url: `https://api.webflow.com/sites?api_version=1.0.0&access_token=${APIKey}`,
+    url: `https://api.webflow.com/collections/${collectionID}/items/${itemID}?api_version=1.0.0&access_token=${APIKey}`,
     type: 'GET',
     contentType: 'application/json;',
     crossDomain: true,
     dataType: 'json',
     success: function(DataFromJson) {
-      dataJson = DataFromJson;
-      console.log(dataJson);
+      console.log(DataFromJson);
     },
     error: function() {
       console.log("Can't fetch ");
     }
   })
 }
+
+
+
+// function getDatas() {
+//   $.ajax({
+//     url: `https://api.webflow.com/collections/${collectionID}/items?api_version=1.0.0&access_token=${APIKey}&live=true`,
+//     type: "POST",
+//     data: `{"fields": [{"test": "10"}]`,
+//     contentType: 'application/json;',
+//     crossDomain: true,
+//     dataType: 'json',
+//     success: function(data) {
+//       console.log(data);
+//       getData();
+//     },
+//     error: function() {
+//       console.log("Can't fetch ");
+//     }
+//   })
+// }
