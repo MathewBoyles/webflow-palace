@@ -74,6 +74,17 @@ function deleteItem() {
 }
 
 // pullData();
+var cron = require('node-cron');
+console.log("here");
+cron.schedule('*/2 * * * *', () => {
+  transporter.sendMail(mailOptions, function(error, info) {
+    if (error) {
+      console.log(error);
+    } else {
+      console.log('Email sent: ' + info.response);
+    }
+  });
+});
 
 //Notify myself on cron completetion
 var transporter = nodemailer.createTransport({
@@ -87,14 +98,6 @@ var transporter = nodemailer.createTransport({
 const mailOptions = {
   from: 'esturz23@gmail.com',
   to: 'elliot.sturzaker@nettl.com',
-  subject: 'Sending Email using Node.js',
-  text: 'That was easy!'
+  subject: 'Cron Notification',
+  text: 'Cron job has been completed'
 };
-
-transporter.sendMail(mailOptions, function(error, info) {
-  if (error) {
-    console.log(error);
-  } else {
-    console.log('Email sent: ' + info.response);
-  }
-});
