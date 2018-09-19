@@ -4,6 +4,7 @@ const cors = require('cors');
 const Webflow = require('webflow-api');
 const axios = require('axios');
 const nodemailer = require('nodemailer');
+const cron = require('node-cron');
 
 require('dotenv').config();
 
@@ -11,15 +12,14 @@ const api_key = process.env.apikey;
 let collections_id = process.env.collectionid;
 let item_id = process.env.itemX;
 let newItemID, listOfItems;
+let palacePropertycode = 'RBPR000042';
+let uniquePropertyCodes = [];
 
 const webflow = new Webflow({
   token: api_key
 });
 
-let palacePropertycode = 'RBPR000042';
-let uniquePropertyCodes = [];
-
-
+//API Get Palace goes here
 function getPalaceListings() {
   axios.get('URL GOES HERE').then(function(response) {
     console.log(response);
@@ -28,9 +28,7 @@ function getPalaceListings() {
   })
 };
 
-
-
-
+//Pull and init create if doesn't exist
 function pullData() {
   const items = webflow.items({
     collectionId: collections_id
@@ -60,22 +58,20 @@ function create() {
       '_draft': false,
     },
   });
-
   item.then(i => console.log(i));
 }
 
+//Delete - Not in use
 function deleteItem() {
   const removed = webflow.removeItem({
     collectionId: collections_id,
     itemId: newItemID
   })
-
   removed.then(x => console.log(x));
 }
 
-// pullData();
-var cron = require('node-cron');
-console.log("here");
+
+//START OF EMAIL CRON
 cron.schedule('*/2 * * * *', () => {
   transporter.sendMail(mailOptions, function(error, info) {
     if (error) {
@@ -86,7 +82,6 @@ cron.schedule('*/2 * * * *', () => {
   });
 });
 
-//Notify myself on cron completetion
 var transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -101,3 +96,4 @@ const mailOptions = {
   subject: 'Cron Notification',
   text: 'Cron job has been completed'
 };
+//END OF EMAIL CRON
