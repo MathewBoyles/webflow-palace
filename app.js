@@ -1,28 +1,45 @@
-var express = require('express');
-var app = express();
-var cors = require('cors');
+const express = require('express');
+const app = express();
+const cors = require('cors');
+const Webflow = require('webflow-api');
 
 require('dotenv').config();
 
-const Webflow = require('webflow-api');
-
 const api_key = process.env.apikey;
-let collections_id = process.env.collectionid;
+const collections_id = process.env.collectionid;
+const item_id = process.env.itemX;
 
 
-const webflow = new Webflow({
-  token: api_key
-});
+function pullData() {
+  const webflow = new Webflow({
+    token: api_key
+  });
+  const items = webflow.items({
+    collectionId: collections_id
+  }, {
+    limit: 2
+  });
 
-const items = webflow.items({
-  collectionId: collections_id
-}, {
-  limit: 1
-});
+  items.then(i => console.log(i));
+};
 
-items.then(i => console.log(i));
+pullData();
 
+function create() {
+  const webflow = new Webflow({
+    token: api_key
+  });
 
-// api.site({
-//   // siteId: '580e63e98c9a982ac9b8b741'
-// }).then(site => console.log(site));
+  const item = webflow.createItem({
+    collectionId: collections_id,
+    fields: {
+      'name': 'Exciting blog post title',
+      'slug': 'exciting-post',
+      '_archived': false,
+      '_draft': false,
+    },
+  });
+
+  item.then(i => console.log(i));
+  pullData();
+}
