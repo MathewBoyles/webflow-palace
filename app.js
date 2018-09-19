@@ -8,7 +8,7 @@ require('dotenv').config();
 const api_key = process.env.apikey;
 const collections_id = process.env.collectionid;
 const item_id = process.env.itemX;
-
+let newItemID;
 
 function pullData() {
   const webflow = new Webflow({
@@ -17,13 +17,16 @@ function pullData() {
   const items = webflow.items({
     collectionId: collections_id
   }, {
-    limit: 2
+    limit: 1
   });
 
-  items.then(i => console.log(i));
-};
 
-pullData();
+  items.then(function(i) {
+    console.log(i);
+    // newItemID = i.items[0]._id;
+    // deleteItem(newItemID);
+  });
+};
 
 function create() {
   const webflow = new Webflow({
@@ -41,5 +44,23 @@ function create() {
   });
 
   item.then(i => console.log(i));
-  pullData();
 }
+
+function deleteItem() {
+
+  const webflow = new Webflow({
+    token: api_key
+  });
+
+  // Promise <{}>
+  const removed = webflow.removeItem({
+    collectionId: collections_id,
+    itemId: newItemID
+  })
+
+  removed.then(x => console.log(x));
+}
+
+
+
+pullData();
