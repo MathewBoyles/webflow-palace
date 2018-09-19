@@ -2,6 +2,8 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 const Webflow = require('webflow-api');
+const axios = require('axios');
+const nodemailer = require('nodemailer');
 
 require('dotenv').config();
 
@@ -16,6 +18,18 @@ const webflow = new Webflow({
 
 let palacePropertycode = 'RBPR000042';
 let uniquePropertyCodes = [];
+
+
+function getPalaceListings() {
+  axios.get('URL GOES HERE').then(function(response) {
+    console.log(response);
+  }).catch(function(error) {
+    return;
+  })
+};
+
+
+
 
 function pullData() {
   const items = webflow.items({
@@ -41,7 +55,7 @@ function create() {
     collectionId: collections_id,
     fields: {
       'name': 'Exciting blog post title',
-      'propertycode': 'RBPR000042',
+      'propertycode': palacePropertycode,
       '_archived': false,
       '_draft': false,
     },
@@ -59,4 +73,28 @@ function deleteItem() {
   removed.then(x => console.log(x));
 }
 
-pullData();
+// pullData();
+
+//Notify myself on cron completetion
+var transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'esturz23@gmail.com',
+    pass: process.env.gpassword
+  }
+});
+
+const mailOptions = {
+  from: 'esturz23@gmail.com',
+  to: 'elliot.sturzaker@nettl.com',
+  subject: 'Sending Email using Node.js',
+  text: 'That was easy!'
+};
+
+transporter.sendMail(mailOptions, function(error, info) {
+  if (error) {
+    console.log(error);
+  } else {
+    console.log('Email sent: ' + info.response);
+  }
+});
