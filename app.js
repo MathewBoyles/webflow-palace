@@ -1,16 +1,12 @@
 // const express = require('express');
 // const app = express();
 // const cors = require('cors');
+require('dotenv').config();
 const Webflow = require('webflow-api');
 const axios = require('axios');
 const nodemailer = require('nodemailer');
 const cron = require('node-cron');
 const parseString = require('xml2js').parseString;
-
-
-
-require('dotenv').config();
-
 const api_key = process.env.apikey;
 const palaceEmail = process.env.palaceLogin;
 const palacePass = process.env.palacePassword;
@@ -86,7 +82,8 @@ function deleteItem() {
   removed.then(x => console.log(x));
 }
 
-//START OF CRON
+// *****************START OF CRON************************
+
 function sendCronEmail() {
   cron.schedule('*/2 * * * *', () => {
     transporter.sendMail(mailOptions, function(error, info) {
@@ -114,5 +111,7 @@ const mailOptions = {
   subject: 'Cron Notification',
   text: 'Cron job has been completed'
 };
-//END OF EMAIL CRON
+
+// *****************END OF CRON************************
+
 getPalaceListings();
