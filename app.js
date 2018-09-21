@@ -1,14 +1,19 @@
-const express = require('express');
-const app = express();
-const cors = require('cors');
+// const express = require('express');
+// const app = express();
+// const cors = require('cors');
 const Webflow = require('webflow-api');
 const axios = require('axios');
 const nodemailer = require('nodemailer');
 const cron = require('node-cron');
+const parseString = require('xml2js').parseString;
+
+
 
 require('dotenv').config();
 
 const api_key = process.env.apikey;
+const palaceEmail = process.env.palaceLogin;
+const palacePass = process.env.palacePassword;
 let collections_id = process.env.collectionid;
 let item_id = process.env.itemX;
 let newItemID, listOfItems;
@@ -19,10 +24,21 @@ const webflow = new Webflow({
   token: api_key
 });
 
-//API Get Palace goes here
 function getPalaceListings() {
-  axios.get('URL GOES HERE').then(function(response) {
-    console.log(response);
+  let Pullconfig =
+  axios.get('https://serviceapi.realbaselive.com/Service.svc/RestService/ViewAllDetailedProperty', {
+    headers: {
+     'Content-Type': 'application/json'
+   },
+    auth: {
+      username: palaceEmail,
+      password: palacePass
+    },
+    data:{}
+  }).then(function(response) {
+    parseString(response.data, function (err, result) {
+        console.dir(result.ArrayOfViewAllDetailedProperty.ViewAllDetailedProperty[0]);
+    });
   }).catch(function(error) {
     return;
   })
@@ -70,30 +86,33 @@ function deleteItem() {
   removed.then(x => console.log(x));
 }
 
+//START OF CRON
+function sendCronEmail() {
+  cron.schedule('*/2 * * * *', () => {
+    transporter.sendMail(mailOptions, function(error, info) {
+      if (error) {
+        console.log(error);
+      } else {
+        console.log('Email sent: ' + info.response);
+      }
+    });
+  })
+};
 
-//START OF EMAIL CRON
-cron.schedule('*/2 * * * *', () => {
-  transporter.sendMail(mailOptions, function(error, info) {
-    if (error) {
-      console.log(error);
-    } else {
-      console.log('Email sent: ' + info.response);
-    }
-  });
-});
 
 var transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'esturz23@gmail.com',
+    user: 'palacecronjob@gmail.com',
     pass: process.env.gpassword
   }
 });
 
 const mailOptions = {
-  from: 'esturz23@gmail.com',
+  from: 'palacecronjob@gmail.com',
   to: 'elliot.sturzaker@nettl.com',
   subject: 'Cron Notification',
   text: 'Cron job has been completed'
 };
 //END OF EMAIL CRON
+getPalaceListings();

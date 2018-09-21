@@ -24,6 +24,7 @@
     "node-cron": "^2.0.1",
     "nodemailer": "^4.6.8",
     "npm": "^6.4.1",
-    "webflow-api": "^0.4.1"
+    "webflow-api": "^0.4.1",
+    "xml2js": "^0.4.19"
   }
 }
