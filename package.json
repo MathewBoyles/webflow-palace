@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/sturzael/webflow-palace#readme",
   "dependencies": {
+    "arr-diff": "^4.0.0",
     "axios": "^0.18.0",
     "cors": "^2.8.4",
     "dotenv": "^6.0.0",

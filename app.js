@@ -4,6 +4,7 @@
 require('dotenv').config();
 const Webflow = require('webflow-api');
 const axios = require('axios');
+const diff = require('arr-diff');
 const nodemailer = require('nodemailer');
 const cron = require('node-cron');
 const parseString = require('xml2js').parseString;
@@ -12,7 +13,7 @@ const palaceEmail = process.env.palaceLogin;
 const palacePass = process.env.palacePassword;
 let collections_id = process.env.collectionid;
 let item_id = process.env.itemX;
-let newItemID, listOfItems,itemsToDelete, name, propertyaddress1, propertyaddress2, propertyaddress3, propertyaddress4, propertycode, palacePropertys;
+let itemCodetoDelete,itemPropCodeToDelete, listOfItems,itemsToDelete, name, propertyaddress1, propertyaddress2, propertyaddress3, propertyaddress4, propertycode, palacePropertys;
 let uniquePropertyCodes = [];
 let uniquePalacePropertyCodes = [];
 
@@ -34,11 +35,11 @@ function getPalaceListings() {
     }).then(function(response) {
       parseString(response.data, function(err, result) {
         palacePropertys = result.ArrayOfViewAllDetailedProperty.ViewAllDetailedProperty;
-        // propertyaddress1 = palacePropertys.ViewAllDetailedProperty[0].PropertyAddress1[0];
-        // propertyaddress2 = palacePropertys.ViewAllDetailedProperty[0].PropertyAddress2[0];
-        // propertyaddress3 = palacePropertys.ViewAllDetailedProperty[0].PropertyAddress3[0];
-        // propertyaddress4 = palacePropertys.ViewAllDetailedProperty[0].PropertyAddress4[0];
-        // propertycode = palacePropertys.ViewAllDetailedProperty[0].PropertyCode[0];
+        propertyaddress1 = palacePropertys[1].PropertyAddress1[0];
+        propertyaddress2 = palacePropertys[1].PropertyAddress2[0];
+        propertyaddress3 = palacePropertys[1].PropertyAddress3[0];
+        propertyaddress4 = palacePropertys[1].PropertyAddress4[0];
+        propertycode = palacePropertys[1].PropertyCode[0];
         name = `${propertycode} ${propertyaddress2} ${propertyaddress3} ${propertyaddress4}`;
         for (var i = 0; i < palacePropertys.length; i++) {
           uniquePalacePropertyCodes.push(palacePropertys[i].PropertyCode[0]);
@@ -46,8 +47,6 @@ function getPalaceListings() {
         pullData();
 
       })
-      // console.log("checking if exists already");
-      // pullData();
     }).catch(function(error) {
       return;
     })
@@ -57,43 +56,21 @@ function getPalaceListings() {
 function pullData() {
   const items = webflow.items({
     collectionId: collections_id
-  }, {
-    limit: 24
   });
   items.then(function(i) {
     listOfItems = i.items;
     for (var i = 0; i < listOfItems.length; i++) {
       uniquePropertyCodes.push(listOfItems[i].propertycode);
     }
+    if (uniquePropertyCodes.includes(propertycode)) {
+      console.log("exists already - STOP");
+    } else {
+      create();
+    }
+    //Checking to see if there is anything inside webflow thats not inside Palace to delete
     checkLiveItems();
   });
 };
-
-
-function checkLiveItems() {
-  // if (uniquePropertyCodes.includes(propertycode)) {
-  //   console.log("Property exists in webflow already");
-  // } else {
-  //   console.log("Doesn't exist - Creating item now");
-  //   create();
-  // }
-
-  // console.log(uniquePropertyCodes.includes(uniquePalacePropertyCodes));
-
-  const arrayDiff = {};
-uniquePropertyCodes
-  uniquePalacePropertyCodes.forEach((e1) => uniquePropertyCodes.forEach((e2) => {
-        if (e1 === e2) {
-          arrayDiff[e1] = arrayDiff[e1] + 1 || 1;
-  }}));
-
-    itemsToDelete = Object.keys(arrayDiff).map(e => String(e));
-
-    console.log(itemsToDelete);
-
-
-
-}
 
 function create() {
   const item = webflow.createItem({
@@ -110,20 +87,37 @@ function create() {
     },
   });
   item.then(function(i) {
-    console.log("Created");
-    console.log(i);
+    console.log(`Created item ${name}`);
   })
 }
 
-//Delete - Not in use
+function checkLiveItems() {
+  itemsToDelete = diff(uniquePropertyCodes, uniquePalacePropertyCodes);
+  if (itemsToDelete.length == 0){
+    console.log("Nothing to delete - STOPPED");
+    return;
+  }else {
+    for (var i = 0; i < itemsToDelete.length; i++) {
+      itemPropCodeToDelete = itemsToDelete[i];
+      for (var i = 0; i < listOfItems.length; i++) {
+        if (listOfItems[i].propertycode == itemPropCodeToDelete) {
+        itemCodetoDelete = listOfItems[i]._id;
+        deleteItem();
+        }
+      }
+    }
+  }
+}
+
 function deleteItem() {
   const removed = webflow.removeItem({
     collectionId: collections_id,
-    itemId: newItemID
+    itemId: itemCodetoDelete
   })
-  removed.then(x => console.log(x));
+  removed.then(function(i) {
+    console.log(`Delete item ${itemPropCodeToDelete} - STOPPED`);
+  });
 }
-
 
 getPalaceListings();
 
