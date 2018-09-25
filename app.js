@@ -12,11 +12,9 @@ const palaceEmail = process.env.palaceLogin;
 const palacePass = process.env.palacePassword;
 let collections_id = process.env.collectionid;
 let item_id = process.env.itemX;
-let newItemID, listOfItems;
-let palacePropertycode = 'RBPR000042';
+let newItemID, listOfItems,itemsToDelete, name, propertyaddress1, propertyaddress2, propertyaddress3, propertyaddress4, propertycode, palacePropertys;
 let uniquePropertyCodes = [];
-let name, propertyaddress1,propertyaddress2, propertyaddress3, propertyaddress4, propertycode,palacePropertys;
-
+let uniquePalacePropertyCodes = [];
 
 const webflow = new Webflow({
   token: api_key
@@ -24,30 +22,35 @@ const webflow = new Webflow({
 
 function getPalaceListings() {
   let Pullconfig =
-  axios.get('https://serviceapi.realbaselive.com/Service.svc/RestService/ViewAllDetailedProperty', {
-    headers: {
-     'Content-Type': 'application/json'
-   },
-    auth: {
-      username: palaceEmail,
-      password: palacePass
-    },
-    data:{}
-  }).then(function(response) {
-    parseString(response.data, function (err, result) {
-        palacePropertys = result.ArrayOfViewAllDetailedProperty;
-        propertyaddress1 = palacePropertys.ViewAllDetailedProperty[0].PropertyAddress1[0];
-        propertyaddress2 = palacePropertys.ViewAllDetailedProperty[0].PropertyAddress2[0];
-        propertyaddress3 = palacePropertys.ViewAllDetailedProperty[0].PropertyAddress3[0];
-        propertyaddress4 = palacePropertys.ViewAllDetailedProperty[0].PropertyAddress4[0];
-        propertycode = palacePropertys.ViewAllDetailedProperty[0].PropertyCode[0];
-        name = `${propertycode} ${propertyaddress2} ${propertyaddress3} ${propertyaddress4}`
+    axios.get('https://serviceapi.realbaselive.com/Service.svc/RestService/ViewAllDetailedProperty', {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      auth: {
+        username: palaceEmail,
+        password: palacePass
+      },
+      data: {}
+    }).then(function(response) {
+      parseString(response.data, function(err, result) {
+        palacePropertys = result.ArrayOfViewAllDetailedProperty.ViewAllDetailedProperty;
+        // propertyaddress1 = palacePropertys.ViewAllDetailedProperty[0].PropertyAddress1[0];
+        // propertyaddress2 = palacePropertys.ViewAllDetailedProperty[0].PropertyAddress2[0];
+        // propertyaddress3 = palacePropertys.ViewAllDetailedProperty[0].PropertyAddress3[0];
+        // propertyaddress4 = palacePropertys.ViewAllDetailedProperty[0].PropertyAddress4[0];
+        // propertycode = palacePropertys.ViewAllDetailedProperty[0].PropertyCode[0];
+        name = `${propertycode} ${propertyaddress2} ${propertyaddress3} ${propertyaddress4}`;
+        for (var i = 0; i < palacePropertys.length; i++) {
+          uniquePalacePropertyCodes.push(palacePropertys[i].PropertyCode[0]);
+        }
+        pullData();
+
+      })
+      // console.log("checking if exists already");
+      // pullData();
+    }).catch(function(error) {
+      return;
     })
-    console.log("creating now");
-    create();
-  }).catch(function(error) {
-    return;
-  })
 };
 
 //Pull and init create if doesn't exist
@@ -59,35 +62,56 @@ function pullData() {
   });
   items.then(function(i) {
     listOfItems = i.items;
-    console.log(listOfItems);
     for (var i = 0; i < listOfItems.length; i++) {
       uniquePropertyCodes.push(listOfItems[i].propertycode);
     }
-    if (uniquePropertyCodes.includes(propertycode)) {
-      console.log("exists already");
-    } else {
-      create();
-    }
+    checkLiveItems();
   });
 };
+
+
+function checkLiveItems() {
+  // if (uniquePropertyCodes.includes(propertycode)) {
+  //   console.log("Property exists in webflow already");
+  // } else {
+  //   console.log("Doesn't exist - Creating item now");
+  //   create();
+  // }
+
+  // console.log(uniquePropertyCodes.includes(uniquePalacePropertyCodes));
+
+  const arrayDiff = {};
+uniquePropertyCodes
+  uniquePalacePropertyCodes.forEach((e1) => uniquePropertyCodes.forEach((e2) => {
+        if (e1 === e2) {
+          arrayDiff[e1] = arrayDiff[e1] + 1 || 1;
+  }}));
+
+    itemsToDelete = Object.keys(arrayDiff).map(e => String(e));
+
+    console.log(itemsToDelete);
+
+
+
+}
 
 function create() {
   const item = webflow.createItem({
     collectionId: collections_id,
     fields: {
       'name': name,
-      'propertycode': palacePropertycode,
-      'propertyaddress1':propertyaddress1,
-      'propertyaddress2':propertyaddress2,
-      'propertyaddress3':propertyaddress4,
-      'propertyaddress4':propertyaddress4,
+      'propertycode': propertycode,
+      'propertyaddress1': propertyaddress1,
+      'propertyaddress2': propertyaddress2,
+      'propertyaddress3': propertyaddress4,
+      'propertyaddress4': propertyaddress4,
       '_archived': false,
       '_draft': false,
     },
   });
   item.then(function(i) {
-    console.log("created - Webflow propertyes listed below");
-    pullData();
+    console.log("Created");
+    console.log(i);
   })
 }
 
@@ -99,6 +123,9 @@ function deleteItem() {
   })
   removed.then(x => console.log(x));
 }
+
+
+getPalaceListings();
 
 // *****************START OF CRON************************
 
@@ -131,5 +158,3 @@ const mailOptions = {
 };
 
 // *****************END OF CRON************************
-
-getPalaceListings();
